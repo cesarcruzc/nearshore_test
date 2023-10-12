@@ -1,0 +1,17 @@
+version: "3.5"
+
+services:
+  nearshore_test:
+    platform: linux/amd64
+    container_name: nearshore_test
+    build:
+      context: ./.dockers/postgres
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nearshore_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./.dockers/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
