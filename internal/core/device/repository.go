@@ -2,7 +2,7 @@ package device
 
 import (
 	"fmt"
-	"github.com/cesarcruzc/nearshore_test/internal/domain"
+	"github.com/cesarcruzc/nearshore_test/internal/core/domain"
 	"gorm.io/gorm"
 	"log"
 	"strings"

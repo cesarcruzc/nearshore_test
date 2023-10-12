@@ -1,16 +1,16 @@
 package main
 
 import (
-	"github.com/cesarcruzc/nearshore_test/internal/device"
-	"github.com/cesarcruzc/nearshore_test/internal/firmware"
+	"github.com/cesarcruzc/nearshore_test/internal"
+	dc_nearshore "github.com/cesarcruzc/nearshore_test/internal/core/dc-nearshore"
+	"github.com/cesarcruzc/nearshore_test/internal/core/device"
+	"github.com/cesarcruzc/nearshore_test/internal/core/firmware"
 	"github.com/cesarcruzc/nearshore_test/pkg/bootstrap"
 	"github.com/gin-gonic/gin"
 	"log"
 )
 
 func main() {
-	router := gin.Default()
-
 	err := bootstrap.InitLoadEnv()
 	if err != nil {
 		log.Fatal(err)
@@ -23,6 +23,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	nearshoreEndpoints := dc_nearshore.MakeEndpoints()
+
 	deviceRepository := device.NewRepository(logger, db)
 	deviceService := device.NewService(logger, deviceRepository)
 	deviceEndpoints := device.MakeEndpoints(deviceService)
@@ -31,18 +33,10 @@ func main() {
 	firmwareService := firmware.NewService(logger, firmwareRepository)
 	firmwareEndpoints := firmware.MakeEndpoints(firmwareService)
 
-	router.POST("/device", gin.HandlerFunc(deviceEndpoints.Create))
-	router.GET("/device", gin.HandlerFunc(deviceEndpoints.GetAll))
-	router.GET("/device/:id", gin.HandlerFunc(deviceEndpoints.Get))
-	router.PUT("/device/:id", gin.HandlerFunc(deviceEndpoints.Update))
-	router.DELETE("/device/:id", gin.HandlerFunc(deviceEndpoints.Delete))
+	gin.SetMode(gin.ReleaseMode)
 
-	router.POST("/firmware", gin.HandlerFunc(firmwareEndpoints.Create))
-	router.GET("/firmware", gin.HandlerFunc(firmwareEndpoints.GetAll))
-	router.GET("/firmware/:id", gin.HandlerFunc(firmwareEndpoints.Get))
-	router.PUT("/firmware/:id", gin.HandlerFunc(firmwareEndpoints.Update))
-	router.DELETE("/firmware/:id", gin.HandlerFunc(firmwareEndpoints.Delete))
+	server := internal.LoadUrls(deviceEndpoints, firmwareEndpoints, nearshoreEndpoints)
 
-	router.Run(":8080")
-
+	logger.Println("Server running on", ":8080")
+	logger.Fatalf("Error in server: %s", server.Run(":8080"))
 }
