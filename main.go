@@ -6,8 +6,10 @@ import (
 	"github.com/cesarcruzc/nearshore_test/internal/core/device"
 	"github.com/cesarcruzc/nearshore_test/internal/core/firmware"
 	"github.com/cesarcruzc/nearshore_test/pkg/bootstrap"
+	"github.com/cesarcruzc/nearshore_test/pkg/helper"
 	"github.com/gin-gonic/gin"
 	"log"
+	"os"
 )
 
 func main() {
@@ -23,6 +25,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	username := os.Getenv("AUTH_USER")
+	hashedPassword, err := helper.HashPassword(os.Getenv("AUTH_PASSWORD"))
+	if err != nil {
+		log.Fatalf("Failed to hash password: %v", err)
+	}
+
 	nearshoreEndpoints := dc_nearshore.MakeEndpoints()
 
 	deviceRepository := device.NewRepository(logger, db)
@@ -35,7 +43,7 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 
-	server := internal.LoadUrls(deviceEndpoints, firmwareEndpoints, nearshoreEndpoints)
+	server := internal.LoadUrls(username, hashedPassword, deviceEndpoints, firmwareEndpoints, nearshoreEndpoints)
 
 	logger.Println("Server running on", ":8080")
 	logger.Fatalf("Error in server: %s", server.Run(":8080"))

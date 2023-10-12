@@ -7,12 +7,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func LoadUrls(deviceEndpoints device.Endpoints, firmwareEndpoints firmware.Endpoints, nearshoreEndpoints dc_nearshore.Endpoints) *gin.Engine {
+func LoadUrls(username, password string, deviceEndpoints device.Endpoints, firmwareEndpoints firmware.Endpoints, nearshoreEndpoints dc_nearshore.Endpoints) *gin.Engine {
 	router := gin.New()
 
 	router.GET("/", gin.HandlerFunc(nearshoreEndpoints.Root))
 	router.GET("/health", gin.HandlerFunc(nearshoreEndpoints.HealthCheck))
 
+	router.Use(BasicAuthMiddleware(username, password))
 	deviceGroup := router.Group("/device")
 	{
 		deviceGroup.POST("/", gin.HandlerFunc(deviceEndpoints.Create))
